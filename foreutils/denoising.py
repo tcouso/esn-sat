@@ -2,6 +2,7 @@ from pandas import Series
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 from typing import List, Callable
 
+
 def downsample_time_series(time_series: Series) -> Series:
     """
     Description:
@@ -28,7 +29,7 @@ def downsample_time_series(time_series: Series) -> Series:
 
 
 def moving_std_filter(
-time_series: Series, window_size: int = 26, std_range: int = 4
+    time_series: Series, window_size: int = 26, std_range: int = 4
 ) -> Series:
     """
     Description:
@@ -54,7 +55,9 @@ time_series: Series, window_size: int = 26, std_range: int = 4
     rolling_threshold_lb = rolling_mean - (std_range / 2) * rolling_std
 
     # Filter out of bounds values
-    filtered_time_series = time_series[(time_series < rolling_threshold_ub) & (time_series > rolling_threshold_lb)]
+    filtered_time_series = time_series[
+        (time_series < rolling_threshold_ub) & (time_series > rolling_threshold_lb)
+    ]
 
     # Interpolate missing values
     filtered_time_series = filtered_time_series.resample("W").interpolate()
@@ -88,22 +91,20 @@ def holt_winters_filter(time_series: Series, period: int = 52) -> Series:
     return hw_smoothed_time_series
 
 
-
-
 def denoise_time_series(time_series: Series, processors: List[Callable]) -> Series:
-      """
-      Description:
-      Iteratir pattern for denoising procedure.
+    """
+    Description:
+    Iteratir pattern for denoising procedure.
 
-      Parameters:
-      - `time_series` (Series): The input pandas Series containing the time series data.
-      - `processors` (List[Callable]): List of functions to apply sequentially to the time series data.
+    Parameters:
+    - `time_series` (Series): The input pandas Series containing the time series data.
+    - `processors` (List[Callable]): List of functions to apply sequentially to the time series data.
 
-      Returns:
-      - Series: The processed time series.
-      """
-      denoised_ts = time_series.copy()
-      for processor in processors:
-          denoised_ts = processor(denoised_ts)
-      
-      return denoised_ts
+    Returns:
+    - Series: The processed time series.
+    """
+    denoised_ts = time_series.copy()
+    for processor in processors:
+        denoised_ts = processor(denoised_ts)
+
+    return denoised_ts

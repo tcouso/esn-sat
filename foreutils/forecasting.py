@@ -2,7 +2,7 @@ import reservoirpy
 import numpy as np
 
 
-class Forecaster():
+class Forecaster:
 
     model: reservoirpy.model.Model
     X: np.ndarray
@@ -22,17 +22,21 @@ class Forecaster():
         if not self.model.fitted:
             self.model = self.model.fit(self.X, self.y, warmup=warmup)
 
-    def forecast(self, forecast_len: int, memory: int = 52) -> np.ndarray:
+    def forecast(
+        self, model: reservoirpy.model.Model, T: int, memory: int = 52
+    ) -> np.ndarray:
 
-        # Reset internal state and feed as many steps as indicated by `memory`
-        warmup_y = self.model.run(self.X[:-memory], reset=True)
+        ypred = np.empty((T, 1))
 
-        # Generate prediction
-        ypred = np.empty((forecast_len, 1))
-        x = warmup_y[-1].reshape(1, -1)
+        # Reset internal state and feed the last 52 steps of time series
+        warmup_y = model.run(self.X[-memory:], reset=True)
 
-        for i in range(forecast_len):
-            x = self.model(x)
-            ypred[i] = x
+        # Generate first prediction
+        x = np.concatenate((self.y[-(memory - 1) :].flatten(), warmup_y[-1]))
+
+        for i in range(T):
+            prediction = model.run(x)
+            x = np.concatenate((x[-(memory - 1) :], prediction.flatten()))
+            ypred[i] = prediction
 
         return ypred
