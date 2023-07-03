@@ -33,7 +33,7 @@ class Forecaster:
         x = np.concatenate((self.y[-(memory - 1) :].flatten(), warmup_y[-1]))
 
         for i in range(T):
-            prediction = self.model.run(x)
+            prediction = self.model(x)
             x = np.concatenate((x[-(memory - 1) :], prediction.flatten()))
             ypred[i] = prediction
 
