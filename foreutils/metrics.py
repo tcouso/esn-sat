@@ -1,11 +1,34 @@
 import numpy as np
 import pandas as pd
 
+def MAE(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """
+    Description:
+    Compute the Mean Absolute Error (MAE) between two vectors
+
+    Parameters:
+    y_true: np.ndarray
+        The true values of the time series
+    y_pred: np.ndarray
+        The predicted values of the time series
+
+    Returns:
+    float:
+        The mean absolute error (MAE) between y_true and y_pred
+    """
+    # Compute the absolute error for each value
+    ae = np.abs(y_true - y_pred)
+
+    # Calculate the mean of the absolute errors
+    mae = np.mean(ae)
+
+    return mae
+
 
 def MAPE(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
     Description:
-    Computer the Mean Absolute Percentage Error (MAPE) between
+    Compute the Mean Absolute Percentage Error (MAPE) between
     two vectors
 
     Parameters:
