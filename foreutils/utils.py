@@ -34,7 +34,7 @@ def create_training_data(ts_data: np.ndarray, num_features: int) -> tuple[np.nda
     return X, y
 
 
-def create_multivariate_training_data(ts_data: np.ndarray, num_features: int, train_size: float) -> tuple[np.ndarray]:
+def create_multivariate_training_data(ts_data: np.ndarray, num_features: int, train_size: int) -> tuple[np.ndarray]:
     """
     Create training and testing datasets from multiple time series.
 
