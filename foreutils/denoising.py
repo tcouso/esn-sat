@@ -14,7 +14,6 @@ def downsample_time_series(time_series: Series) -> Series:
 
     Returns:
     - Series: The resampled time series.
-
     """
     # Downsample by week
     resampled_time_series = time_series.resample("W").median()
@@ -94,7 +93,7 @@ def holt_winters_filter(time_series: Series, period: int = 52) -> Series:
 def denoise_time_series(time_series: Series, processors: List[Callable]) -> Series:
     """
     Description:
-    Iteratir pattern for denoising procedure.
+    Iterator pattern for denoising procedure.
 
     Parameters:
     - `time_series` (Series): The input pandas Series containing the time series data.

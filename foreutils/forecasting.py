@@ -26,7 +26,7 @@ class Forecaster:
 
         ypred = np.empty((T, 1))
 
-        # Reset internal state and feed the last 52 steps of time series
+        # Reset internal state and feed the last `memory` steps of time series
         warmup_y = self.model.run(self.X[-memory:], reset=True)
 
         # Generate first prediction

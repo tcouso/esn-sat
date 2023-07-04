@@ -12,9 +12,6 @@ def create_training_data(ts_data: np.ndarray, num_features: int) -> tuple[np.nda
     Returns:
         tuple[np.ndarray]: A tuple containing the training matrix X and the target vector y.
 
-    Raises:
-        None.
-
     Example:
         ts_data = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
         num_features = 3
@@ -45,9 +42,6 @@ def create_multivariate_training_data(ts_data: np.ndarray, num_features: int, tr
 
     Returns:
         tuple[np.ndarray]: A tuple containing Xtrain, ytrain, Xtest, and ytest.
-
-    Raises:
-        None.
 
     Example:
         ts_data = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]])

@@ -32,8 +32,14 @@ def MAPE(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     two vectors
 
     Parameters:
+    y_true: np.ndarray
+        The true values of the time series
+    y_pred: np.ndarray
+        The predicted values of the time series
 
     Returns:
+    float:
+        The mean absolute percentage error (MAPE) between y_true and y_pred
 
     """
     # Compute the absolute percentage error for each value
