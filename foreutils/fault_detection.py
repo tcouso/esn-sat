@@ -1,48 +1,94 @@
-# def fault_detection_process(signal: pd.Series, h:int, N:int, esn: rpy.model.Model, s:int, s_tilde: int):
-#   flag = False
+import pandas as pd
+import numpy as np
+import reservoirpy as rpy
+from denoising import (
+    denoise_time_series,
+    downsample_time_series,
+    moving_std_filter,
+    holt_winters_filter,
+)
+from utils import create_training_data
+from forecasting import Forecaster
 
-#   T = len(signal)
 
-#   # Apply denoising process
-#   denoised_signal = process_ndvi_ts(signal)
+def fault_detection(
+    signal: pd.Series,
+    ESN_signal: rpy.model.Model,
+    ESN_residuals: rpy.model.Model,
+    forecasted_steps: int = 10,
+    residuals_training_steps: int = 52,
+    k: int = 1,
+    h: int = 1,
+    N: int = 4,
+) -> bool:
 
-#   # Train denoised signal ESN
-#   Xtrain = denoised_signal[:s_tilde]
-#   ytrain = denoised_signal[1:s_tilde + 1]
-#   esn.reset()
-#   esn.fit(Xtrain, ytrain)
+    # Denoise signal
+    denoised_signal_series = denoise_time_series(
+        signal, [downsample_time_series, moving_std_filter, holt_winters_filter]
+    )
 
-#   # Predict denoised signal in generative mode
-#   denoised_signal_prediction = forecast(esn, forecast_len=T - (s_tilde + 1), memory=52, warmup=10)
+    # Parameters setup
+    denoised_signal = denoised_signal_series.to_numpy()
+    X, y = create_training_data(denoised_signal, num_features=52)
+    T = len(X)
+    s = T - forecasted_steps
+    s_tilde = s - residuals_training_steps
 
-#   assert denoised_signal[s_tilde + 1:].shape == denoised_signal_prediction.shape
+    # Signal forecasting
+    Xtrain_signal = X[:s_tilde]
+    ytrain_signal = y[:s_tilde]
 
-#   # Compute residuals
-#   residuals = denoised_signal[s_tilde + 1:] - denoised_signal_prediction
+    signal_forecaster = Forecaster(ESN_signal, num_features=52)
+    signal_forecaster.fit(Xtrain_signal, ytrain_signal, warmup=10)
 
-#   # Train residuals ESN
-#   Xtrain = residuals[:s]
-#   ytrain = residuals[1:s + 1]
-#   esn.reset()
-#   esn.fit(Xtrain, ytrain)
+    warmup_X_signal = Xtrain_signal[-52:, :]
+    denoised_signal_prediction = signal_forecaster.forecast(
+        T=T - s_tilde, warmup_X=warmup_X_signal
+    )
 
-#   # Predict residuals in generative mode
-#   residuals_prediction = forecast(esn, forecast_len=T - (s + 1), memory=52, warmup=10)
+    # Compute residuals
+    residuals = y[s_tilde:s] - denoised_signal_prediction[: s - s_tilde]
 
-#   assert denoised_signal[s + 1:].shape == residuals_prediction.shape
+    # Residuals forecasting
+    Xtrain_residuals, ytrain_residuals = create_training_data(residuals, 52)
 
-#   # Compute lower bound
+    residuals_forecaster = Forecaster(ESN_residuals, num_features=52)
+    residuals_forecaster.fit(Xtrain_residuals, ytrain_residuals, warmup=10)
 
-#   lower_bound = None
+    warmup_X_residuals = Xtrain_residuals[-52:, :]
+    residuals_forecast = residuals_forecaster.forecast(
+        T=T - s, warmup_X=warmup_X_residuals
+    )
 
-#   i = 0
-#   while not flag:
-#     i += h
+    # Compute lower bound
+    lower_bound = denoised_signal_prediction[s - s_tilde : T] - k * residuals_forecast
 
-#     # flag = exists t such as p_t < LB for N consecutive observations
-#     if flag:
-#       break
+    # Fault detection
+    flag = False
+    max_iter = T - s
 
-#   # return date associated with i
+    for i in range(0, max_iter, h):
 
-#   pass
+        # Iteration parameters
+        start_index = s + i
+        end_index = start_index + h
+        forecast_len = T - start_index
+
+        # Iteration dataset
+        curr_X = X[start_index:end_index]
+        curr_y = y[start_index:end_index]
+
+        # Train signal forecaster
+        signal_forecaster.fit(curr_X, curr_y, warmup=0)
+
+        # Predict denoised signal in generative mode
+        curr_warmup_X = X[end_index - 52 : end_index]
+        forecast = signal_forecaster.forecast(T=forecast_len, warmup_X=curr_warmup_X)
+
+        # Flag condition
+        for j in range(forecast_len - N + 1):
+            flag = np.all(forecast[j : j + N] < lower_bound[i + j : i + j + N])
+            if flag:
+                return flag
+
+        return flag

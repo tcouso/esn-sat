@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
 
+
 def create_training_data(ts_data: np.ndarray, num_features: int) -> tuple[np.ndarray]:
     """
     Create a training dataset from a 1D time series array.
@@ -31,7 +32,9 @@ def create_training_data(ts_data: np.ndarray, num_features: int) -> tuple[np.nda
     return X, y
 
 
-def create_multivariate_training_data(ts_data: np.ndarray, num_features: int, train_size: int) -> tuple[np.ndarray]:
+def create_multivariate_training_data(
+    ts_data: np.ndarray, num_features: int, train_size: int
+) -> tuple[np.ndarray]:
     """
     Create training and testing datasets from multiple time series.
 
@@ -59,7 +62,9 @@ def create_multivariate_training_data(ts_data: np.ndarray, num_features: int, tr
     for ts_idx in range(num_time_series):
         ts = ts_data[ts_idx]
         X, y = create_training_data(ts, num_features)
-        Xtrain, Xtest, ytrain, ytest = train_test_split(X, y, train_size=train_size, shuffle=False)
+        Xtrain, Xtest, ytrain, ytest = train_test_split(
+            X, y, train_size=train_size, shuffle=False
+        )
 
         all_Xtrain.append(Xtrain)
         all_ytrain.append(ytrain)
