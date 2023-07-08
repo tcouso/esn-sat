@@ -1,40 +1,41 @@
-import reservoirpy
+import reservoirpy as rpy
 import numpy as np
 
 
 class Forecaster:
 
-    model: reservoirpy.model.Model
-    X: np.ndarray
-    y: np.ndarray
+    model: rpy.model.Model
+    num_features: int
 
     def __init__(
-        self, esn: reservoirpy.model.Model, X: np.ndarray, y: np.ndarray
+        self, esn: rpy.model.Model, num_features:int
     ) -> None:
-        # Data
-        self.X = X
-        self.y = y
+        self.num_features = num_features
 
         # Echo state network
         self.model = esn
 
-    def fit(self, warmup: int = 10) -> None:
+    def fit(self,  X: np.ndarray, y: np.ndarray, warmup: int = 10) -> None:
         if not self.model.fitted:
-            self.model = self.model.fit(self.X, self.y, warmup=warmup)
+            self.model = self.model.fit(X, y, warmup=warmup)
 
-    def forecast(self, T: int, memory: int = 52) -> np.ndarray:
+    def forecast(self, T: int, warmup_X: np.ndarray) -> np.ndarray:
+
+        assert warmup_X.shape[1] == self.num_features
 
         ypred = np.empty((T, 1))
 
         # Reset internal state and feed the last `memory` steps of time series
-        warmup_y = self.model.run(self.X[-memory:], reset=True)
+        warmup_y = self.model.run(warmup_X, reset=True)
+        last_X = warmup_X[-1]
 
         # Generate first prediction
-        x = np.concatenate((self.y[-(memory - 1) :].flatten(), warmup_y[-1]))
+        x = np.concatenate((last_X[-(self.num_features - 1):].flatten(), warmup_y[-1]))
+
 
         for i in range(T):
             prediction = self.model(x)
-            x = np.concatenate((x[-(memory - 1) :], prediction.flatten()))
+            x = np.concatenate((x[-(self.num_features - 1) :], prediction.flatten()))
             ypred[i] = prediction
 
         return ypred
