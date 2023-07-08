@@ -1,14 +1,15 @@
 import pandas as pd
 import numpy as np
 import reservoirpy as rpy
-from denoising import (
+
+from foreutils.denoising import (
     denoise_time_series,
     downsample_time_series,
     moving_std_filter,
     holt_winters_filter,
 )
-from utils import create_training_data
-from forecasting import Forecaster
+from foreutils.utils import create_training_data
+from foreutils.forecasting import Forecaster
 
 
 def fault_detection(
