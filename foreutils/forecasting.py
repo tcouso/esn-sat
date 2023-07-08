@@ -7,15 +7,13 @@ class Forecaster:
     model: rpy.model.Model
     num_features: int
 
-    def __init__(
-        self, esn: rpy.model.Model, num_features:int
-    ) -> None:
+    def __init__(self, esn: rpy.model.Model, num_features: int) -> None:
         self.num_features = num_features
 
         # Echo state network
         self.model = esn
 
-    def fit(self,  X: np.ndarray, y: np.ndarray, warmup: int = 10) -> None:
+    def fit(self, X: np.ndarray, y: np.ndarray, warmup: int = 10) -> None:
         if not self.model.fitted:
             self.model = self.model.fit(X, y, warmup=warmup)
 
@@ -30,8 +28,7 @@ class Forecaster:
         last_X = warmup_X[-1]
 
         # Generate first prediction
-        x = np.concatenate((last_X[-(self.num_features - 1):].flatten(), warmup_y[-1]))
-
+        x = np.concatenate((last_X[-(self.num_features - 1) :].flatten(), warmup_y[-1]))
 
         for i in range(T):
             prediction = self.model(x)

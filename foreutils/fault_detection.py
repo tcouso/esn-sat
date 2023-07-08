@@ -17,7 +17,7 @@ def fault_detection(
     ESN_signal: rpy.model.Model,
     ESN_residuals: rpy.model.Model,
     forecasted_steps: int = 10,
-    residuals_training_steps: int = 52,
+    residuals_training_steps: int = 208,
     k: int = 1,
     h: int = 1,
     N: int = 4,
@@ -31,6 +31,7 @@ def fault_detection(
     # Parameters setup
     denoised_signal = denoised_signal_series.to_numpy()
     X, y = create_training_data(denoised_signal, num_features=52)
+
     T = len(X)
     s = T - forecasted_steps
     s_tilde = s - residuals_training_steps
@@ -48,10 +49,12 @@ def fault_detection(
     )
 
     # Compute residuals
-    residuals = y[s_tilde:s] - denoised_signal_prediction[: s - s_tilde]
+    residuals = y[s_tilde:s].reshape(-1, 1) - denoised_signal_prediction[: s - s_tilde]
+    residuals = residuals.flatten()
 
     # Residuals forecasting
     Xtrain_residuals, ytrain_residuals = create_training_data(residuals, 52)
+    ytrain_residuals = ytrain_residuals.reshape(-1, 1)
 
     residuals_forecaster = Forecaster(ESN_residuals, num_features=52)
     residuals_forecaster.fit(Xtrain_residuals, ytrain_residuals, warmup=10)
@@ -90,6 +93,6 @@ def fault_detection(
         for j in range(forecast_len - N + 1):
             flag = np.all(forecast[j : j + N] < lower_bound[i + j : i + j + N])
             if flag:
-                return flag
+                return float(flag)
 
-        return flag
+        return float(flag)
