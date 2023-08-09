@@ -14,8 +14,8 @@ class Forecaster:
         self.model = esn
 
     def fit(self, X: np.ndarray, y: np.ndarray, warmup: int = 10) -> None:
-        if not self.model.fitted:
-            self.model = self.model.fit(X, y, warmup=warmup)
+        # if not self.model.fitted:
+        self.model = self.model.fit(X, y, warmup=warmup)
 
     def forecast(self, T: int, warmup_X: np.ndarray) -> np.ndarray:
 
