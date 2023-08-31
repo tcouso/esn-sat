@@ -23,6 +23,33 @@ def fault_detection(
     N: int = 4,
 ) -> bool:
 
+    """
+    Detect if a forecasted NDVI signal diverges from a real signal measure.
+
+    Parameters:
+    - signal (pd.Series): The input NDVI signal.
+    - ESN_signal (rpy.model.Model): Echo State Network model for signal prediction.
+    - ESN_residuals (rpy.model.Model): Echo State Network model for residuals prediction.
+    - forecasted_steps (int, optional): Number of future steps to forecast. Default is 10.
+    - residuals_training_steps (int, optional): Number of steps to train the residuals. Default is 208.
+    - k (int, optional): Scaling factor for residuals forecast. Default is 1.
+    - h (int, optional): Iteration step size. Default is 1.
+    - N (int, optional): Length of forecast segment to check against lower bound. Default is 4.
+
+    Returns:
+    - bool: True if forecasted signal diverges from the actual signal, otherwise False.
+
+    Procedure:
+    1. Denoise the input signal.
+    2. Partition the denoised signal into training data.
+    3. Forecast the denoised signal using the ESN_signal model.
+    4. Compute the residuals between actual and forecasted signals.
+    5. Forecast the residuals using the ESN_residuals model.
+    6. Compute the lower bound for fault detection.
+    7. Compare forecasted signal segments against the lower bound to detect faults.
+
+    """
+
     # Denoise signal
     denoised_signal_series = denoise_time_series(
         signal, [downsample_time_series, moving_std_filter, holt_winters_filter]
